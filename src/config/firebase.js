@@ -11,10 +11,6 @@ try {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     };
   } else {
-    // Check if we are on Vercel to give a better error
-    if (process.env.VERCEL) {
-      throw new Error('FIREBASE_PRIVATE_KEY environment variable is missing on Vercel.');
-    }
     serviceAccount = require('./firebase-service-account.json');
   }
 
