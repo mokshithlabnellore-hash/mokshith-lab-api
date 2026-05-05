@@ -66,3 +66,4 @@ typings/
 *.swp
 *.swo
 .DS_Store
+!src/config/firebase-service-account.json
