@@ -4,8 +4,6 @@ require('dotenv').config();
 let serviceAccount;
 
 try {
-  // If we have the private key in ENV (like on Vercel), use it.
-  // Otherwise, use the local JSON file.
   if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PRIVATE_KEY.length > 50) {
     serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
@@ -13,6 +11,10 @@ try {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     };
   } else {
+    // Check if we are on Vercel to give a better error
+    if (process.env.VERCEL) {
+      throw new Error('FIREBASE_PRIVATE_KEY environment variable is missing on Vercel.');
+    }
     serviceAccount = require('./firebase-service-account.json');
   }
 
