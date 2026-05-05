@@ -1,4 +1,7 @@
-const DescopeClient = require('@descope/node-sdk').default;
+let DescopeClient = require('@descope/node-sdk');
+if (DescopeClient.default) {
+  DescopeClient = DescopeClient.default;
+}
 require('dotenv').config();
 
 const descopeClient = DescopeClient({

@@ -42,20 +42,40 @@ exports.customerLogin = async (req, res) => {
   }
 };
 
-// Admin Login (Username/Password)
-// Note: Firebase Auth usually uses Email/Password. 
-// If "username" is used, we might need a lookup or just use email as username.
-exports.adminLogin = async (req, res) => {
-  const { username, password } = req.body;
+const axios = require('axios');
 
-  // Simple implementation using .env for now, 
-  // or you can implement Firebase Auth verification here.
-  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    return res.status(200).json({ 
-      message: 'Admin login successful', 
-      token: 'mock-admin-token' // In a real app, generate a JWT or use Firebase custom tokens
-    });
+// Admin Login (Email/Password via Firebase Auth REST API)
+exports.adminLogin = async (req, res) => {
+  const { username, password } = req.body; // Treat username as email
+  const apiKey = process.env.FIREBASE_API_KEY;
+
+  if (!apiKey || apiKey === 'your-firebase-web-api-key') {
+    return res.status(500).json({ message: 'Firebase API Key not configured in .env' });
   }
 
-  res.status(401).json({ message: 'Invalid admin credentials' });
+  try {
+    const response = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      {
+        email: username,
+        password: password,
+        returnSecureToken: true,
+      }
+    );
+
+    const { idToken, localId } = response.data;
+
+    // Optional: You can check if this user has "admin" role in Firestore here
+    // const adminDoc = await db.collection('admins').doc(localId).get();
+    // if (!adminDoc.exists) return res.status(403).json({ message: 'Not an admin' });
+
+    res.status(200).json({ 
+      message: 'Admin login successful', 
+      token: idToken,
+      uid: localId
+    });
+  } catch (error) {
+    const errorMessage = error.response?.data?.error?.message || 'Authentication failed';
+    res.status(401).json({ message: errorMessage });
+  }
 };
